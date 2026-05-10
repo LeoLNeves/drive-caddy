@@ -62,9 +62,7 @@
                 color: #ffffff !important;
                 border: 1px solid #555 !important;
                 border-radius: 8px !important; 
-                /* 35px right padding ensures text doesn't hit the icon */
                 padding: 8px 35px 8px 16px !important; 
-                /* Pulls the magnifying glass 10px away from the right edge */
                 background-position: right 10px center !important; 
                 outline: none !important;
                 margin-bottom: 10px !important;
@@ -75,7 +73,6 @@
                 border-color: #888 !important; 
             }
 
-            /* Push default browser search icons inward just in case */
             input[type="search"]::-webkit-search-cancel-button,
             input[type="search"]::-webkit-search-decoration {
                 margin-right: 5px;
@@ -94,7 +91,6 @@
                 text-align: left !important;
             }
 
-            /* THIN LINES */
             table tr, table th, table td {
                 border-top: none !important;
                 border-left: none !important;
@@ -106,7 +102,6 @@
                 padding: 12px 8px !important; 
             }
             
-            /* SMOOTH HOVER */
             table tbody tr td {
                 transition: background-color 0.2s ease !important;
                 background-color: transparent !important;
@@ -119,13 +114,38 @@
                 cursor: pointer;
             }
             
-            /* WHITE TEXT */
             a, a:visited, a:hover, a:active {
                 color: #ffffff !important;
                 text-decoration: none !important;
             }
             
             svg { fill: #ffffff !important; }
+
+            /* 5. ULTRA-MINIMAL README BLOCK */
+            #readme-container {
+                display: none; 
+                margin-top: 60px;
+                padding: 0 8px; /* Aligns text with the table cell padding above */
+            }
+
+            .readme-title {
+                font-size: 0.85em;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                color: #888;
+                margin-top: 0;
+                margin-bottom: 15px;
+            }
+
+            #readme-content {
+                white-space: pre-wrap; 
+                word-wrap: break-word;
+                font-family: monospace;
+                font-size: 0.9em;
+                color: #dcdcdc;
+                line-height: 1.6;
+                margin: 0;
+            }
         }
     </style>
   </head>
@@ -135,6 +155,9 @@
       <form>
         <input id="searchTerm" name="filter" type="search" autocapitalize="none" onkeyup="doSearch()">
       </form>
+      
+      <script>let hasReadme = false;</script>
+
       <table>
         <thead>
           <tr>
@@ -157,38 +180,62 @@
           {{end}}
 
           {{range .Items}}
-          {{if ne .Name "Caddyr" }}
-          {{if not .IsDir}}
-          <a class="play" href="intent:{{.URL}}#Intent;scheme=file;action=android.intent.action.VIEW;end;"target="_blank">
-            {{end}}
-            <tr>
-              <td valign="top">
-                <a href="{{.URL}}">
-                  {{if .IsDir}}
-                  <img src="/Caddyr/icons/dir.png" alt="[IMG]"></a>
-                {{else}}
-                <script>
-                  document.write('<img src="/Caddyr/icons/'+extension("{{.Name}}")+'.png" alt="[IMG]" onerror="this.src=\'/Caddyr/icons/default.png\'"/>');
-                </script>
-                {{end}}
-              </td>
-              <td><a href="{{.URL}}">{{.Name}}</a></td>
-              <td><script>document.write(prettyDate("{{.ModTime}}"));</script></td>
-              <td align="right">
-                {{if not .IsDir}}
-                <script>document.write(humanFileSize({{.Size}}));</script>
-                {{else}}
-                Directory
-                {{end}}
-              </td>
+            {{if eq .Name "README.txt"}}
+              <script>hasReadme = true;</script>
+            {{else if ne .Name "Caddyr" }}
               {{if not .IsDir}}
-            </a>
+              <a class="play" href="intent:{{.URL}}#Intent;scheme=file;action=android.intent.action.VIEW;end;"target="_blank">
+              {{end}}
+              <tr>
+                <td valign="top">
+                  <a href="{{.URL}}">
+                    {{if .IsDir}}
+                    <img src="/Caddyr/icons/dir.png" alt="[IMG]"></a>
+                  {{else}}
+                  <script>
+                    document.write('<img src="/Caddyr/icons/'+extension("{{.Name}}")+'.png" alt="[IMG]" onerror="this.src=\'/Caddyr/icons/default.png\'"/>');
+                  </script>
+                  {{end}}
+                </td>
+                <td><a href="{{.URL}}">{{.Name}}</a></td>
+                <td><script>document.write(prettyDate("{{.ModTime}}"));</script></td>
+                <td align="right">
+                  {{if not .IsDir}}
+                  <script>document.write(humanFileSize({{.Size}}));</script>
+                  {{else}}
+                  Directory
+                  {{end}}
+                </td>
+              </tr>
+              {{if not .IsDir}}
+              </a>
+              {{end}}
             {{end}}
-          </tr>
-        {{end}}
-        {{end}}
-      </tbody>
-    </table>
-  </div>
-</body>
+          {{end}}
+        </tbody>
+      </table>
+
+      <!-- Minimal README Container -->
+      <div id="readme-container">
+        <h2 class="readme-title">README.txt</h2>
+        <pre id="readme-content">Loading...</pre>
+      </div>
+
+    </div>
+
+    <script>
+      if (hasReadme) {
+        fetch('README.txt')
+          .then(response => {
+             if (response.ok) return response.text();
+             throw new Error('README could not be loaded.');
+          })
+          .then(text => {
+            document.getElementById('readme-content').textContent = text;
+            document.getElementById('readme-container').style.display = 'block';
+          })
+          .catch(error => console.error('Error fetching README:', error));
+      }
+    </script>
+  </body>
 </html>
